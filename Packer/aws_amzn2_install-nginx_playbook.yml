@@ -1,0 +1,29 @@
+---
+- name: Install Nginx
+  hosts: default
+  become: true
+
+  tasks:
+    - name: Update Repository
+      yum:
+        update_cache: yes
+        state: latest
+
+    - name: Get Nginx Package List
+      yum:
+        list: nginx
+      register: pkg_list
+
+    - name: Install Nginx If Not Installed
+      shell: amazon-linux-extras install nginx1
+      when: pkg_list.results | selectattr("yumstate", "match", "installed") | list | length == 0
+
+    - name: Make Sure A Nginx is Starting
+      systemd:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Set Timezone to Asia/Tokyo
+      timezone:
+        name: Asia/Tokyo
